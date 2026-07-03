@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>العروض العقارية</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --gold:#c9a870;--gold-l:#e2c98a;--gold-d:#8a6a2c;
+  --bg:#0e0e11;--card:#17171b;--border:#27272e;
+  --text:#e3d6b8;--muted:#7d7d88;--body-text:#e9e6df;
+}
+body.light{
+  --gold:#a3792c;--gold-l:#c9a24f;--gold-d:#6b4e14;
+  --bg:#f6f3ec;--card:#ffffff;--border:#e2dbc8;
+  --text:#4a3a18;--muted:#8a8070;--body-text:#2c2410;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--body-text);min-height:100vh;direction:rtl;transition:background .25s,color .25s;}
+.wrap{max-width:1100px;margin:0 auto;padding:20px 16px 60px;}
+
+/* header */
+#ohdr{display:flex;align-items:center;gap:12px;padding:18px 0;border-bottom:1px solid var(--border);margin-bottom:20px;}
+#theme-btn{position:fixed;top:16px;left:16px;z-index:50;background:var(--card);border:1px solid var(--border);border-radius:50%;width:38px;height:38px;font-size:16px;cursor:pointer;}
+#ohdr img{width:52px;height:52px;object-fit:contain;border-radius:10px;}
+#ohdr h1{font-size:17px;font-weight:800;color:var(--gold);}
+#ohdr p{font-size:12px;color:var(--muted);margin-top:2px;}
+#ohdr a.call{margin-right:auto;background:rgba(80,200,120,.1);border:1px solid rgba(80,200,120,.25);color:#50c878;border-radius:8px;padding:9px 16px;font-size:13px;font-weight:700;text-decoration:none;}
+
+/* states */
+#state-loading,#state-empty,#state-notfound{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 20px;text-align:center;color:var(--muted);gap:10px;}
+.spinner{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* grid */
+#grid{display:grid;grid-template-columns:1fr;gap:16px;}
+@media(min-width:640px){#grid{grid-template-columns:repeat(2,1fr);}}
+@media(min-width:1000px){#grid{grid-template-columns:repeat(3,1fr);}}
+
+.lcard{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;cursor:pointer;transition:border-color .2s,transform .2s;}
+.lcard:hover{border-color:rgba(201,168,76,.35);transform:translateY(-2px);}
+.lcard .limg{width:100%;height:190px;object-fit:cover;background:#0d0d10;display:block;}
+.lcard .limg-ph{width:100%;height:190px;display:flex;align-items:center;justify-content:center;font-size:40px;color:var(--border);background:#0d0d10;}
+.lbody{padding:14px 16px 16px;}
+.ltop{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:6px;}
+.ltitle{font-size:15px;font-weight:800;color:var(--text);line-height:1.4;}
+.lprice{font-size:14px;font-weight:900;color:var(--gold);white-space:nowrap;}
+.lmeta{display:flex;gap:10px;flex-wrap:wrap;font-size:11px;color:var(--muted);margin-top:6px;}
+.ldeal{display:inline-block;font-size:10px;font-weight:700;border-radius:4px;padding:2px 8px;margin-bottom:6px;}
+.ldeal.sale{background:rgba(80,160,220,.12);color:#60a8e8;}
+.ldeal.rent{background:rgba(220,180,60,.12);color:#e0c050;}
+body.light .ldeal.sale{background:rgba(30,100,190,.1);color:#1e64be;}
+body.light .ldeal.rent{background:rgba(170,120,10,.1);color:#aa780a;}
+
+/* modal detail */
+#dmod{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:500;align-items:flex-end;justify-content:center;}
+#dmod.on{display:flex;}
+#dbox{background:var(--card);width:100%;max-width:640px;max-height:92vh;overflow-y:auto;border-radius:18px 18px 0 0;}
+@media(min-width:700px){#dbox{border-radius:18px;margin:20px;}}
+#dgal{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;}
+#dgal img{width:100%;flex-shrink:0;scroll-snap-align:start;height:280px;object-fit:cover;}
+#dclose{position:sticky;top:12px;margin-right:12px;float:left;background:rgba(0,0,0,.6);color:#fff;border:none;border-radius:50%;width:32px;height:32px;font-size:14px;cursor:pointer;z-index:5;}
+#dcontent{padding:18px 20px 24px;}
+#dcontent h2{font-size:19px;font-weight:800;color:var(--text);margin-bottom:8px;}
+#ddesc{font-size:13.5px;color:var(--muted);line-height:1.9;margin:14px 0;white-space:pre-wrap;}
+.dfields{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0;}
+.dfield{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:9px 12px;}
+.dfield .fk{font-size:10px;color:var(--muted);margin-bottom:3px;}
+.dfield .fv{font-size:13px;color:var(--gold);font-weight:700;}
+.dact{display:flex;gap:10px;margin-top:16px;}
+.dact a{flex:1;text-align:center;padding:12px;border-radius:10px;font-size:14px;font-weight:700;text-decoration:none;}
+
+/* category tabs */
+#cat-tabs{display:none;gap:8px;overflow-x:auto;padding-bottom:10px;margin-bottom:16px;}
+.cat-tab{flex-shrink:0;padding:8px 16px;border-radius:20px;border:1px solid var(--border);background:var(--card);color:var(--muted);font-family:'Tajawal',sans-serif;font-size:12.5px;font-weight:600;cursor:pointer;white-space:nowrap;transition:all .2s;}
+.cat-tab.on{background:rgba(201,168,76,.12);border-color:rgba(201,168,76,.35);color:var(--gold);}
+
+/* contact modal */
+#cmod{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:600;align-items:center;justify-content:center;padding:16px;}
+#cmod.on{display:flex;}
+#cbox{background:var(--card);border:1px solid var(--border);border-radius:16px;width:100%;max-width:420px;padding:22px;position:relative;}
+#cbox h3{color:var(--gold);font-size:16px;font-weight:800;margin-bottom:6px;}
+.chint{font-size:12px;color:var(--muted);margin-bottom:14px;background:var(--bg);border-radius:6px;padding:6px 10px;}
+.cclose{position:absolute;top:14px;left:14px;background:none;border:none;color:var(--muted);font-size:16px;cursor:pointer;}
+.cfield{margin-top:12px;}
+.cfield label{display:block;font-size:11px;color:var(--muted);font-weight:700;margin-bottom:5px;}
+.cfield input,.cfield textarea{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--body-text);font-family:'Tajawal',sans-serif;font-size:13.5px;padding:10px 12px;outline:none;}
+.cerr{color:#e06060;font-size:12px;margin-top:8px;display:none;}
+.csend{width:100%;margin-top:16px;background:linear-gradient(135deg,var(--gold),var(--gold-l));color:#000;border:none;border-radius:10px;padding:12px;font-size:14px;font-weight:700;cursor:pointer;}
+#o-contact-btn{border:1px solid;cursor:pointer;font-family:'Tajawal',sans-serif;}
+.dact .c{background:rgba(80,200,120,.12);color:#50c878;border:1px solid rgba(80,200,120,.3);}
+.dact .w{background:rgba(37,211,102,.12);color:#25d366;border:1px solid rgba(37,211,102,.3);}
+</style>
+</head>
+<body>
+<script>(function(){try{if(localStorage.getItem('sf_theme')==='light')document.body.classList.add('light');}catch(e){}})();</script>
+
+<div class="wrap">
+  <button id="theme-btn" onclick="toggleTheme()">☀️</button>
+  <div id="ohdr" style="display:none">
+    <img id="o-logo" src="" alt="">
+    <div>
+      <h1 id="o-name">—</h1>
+      <p id="o-city">—</p>
+    </div>
+    <button class="call" id="o-contact-btn" onclick="openContact()" style="background:rgba(201,168,76,.12);border-color:rgba(201,168,76,.3);color:var(--gold);margin-left:8px">✉️ تواصل معنا</button>
+    <a class="call" id="o-call" href="#">📞 اتصال</a>
+  </div>
+
+  <div id="cat-tabs" style="display:none"></div>
+
+  <div id="state-loading">
+    <div class="spinner"></div>
+    <p>جارِ التحميل...</p>
+  </div>
+
+  <div id="state-notfound" style="display:none">
+    <div style="font-size:40px">🔍</div>
+    <p>لم يتم العثور على هذا المكتب</p>
+  </div>
+
+  <div id="state-empty" style="display:none">
+    <div style="font-size:40px">🏘</div>
+    <p>لا توجد عروض منشورة حالياً</p>
+  </div>
+
+  <div id="grid"></div>
+</div>
+
+<!-- CONTACT MODAL -->
+<div id="cmod">
+  <div id="cbox">
+    <button class="cclose" onclick="closeContact()">✕</button>
+    <h3>✉️ تواصل معنا</h3>
+    <p class="chint" id="c-listing-hint" style="display:none"></p>
+    <div class="cfield"><label>الاسم *</label><input id="c-name" type="text" placeholder="اسمك الكامل"></div>
+    <div class="cfield"><label>الجوال *</label><input id="c-phone" type="tel" placeholder="05XXXXXXXX"></div>
+    <div class="cfield"><label>البريد الإلكتروني</label><input id="c-email" type="email" placeholder="اختياري"></div>
+    <div class="cfield"><label>الرسالة *</label><textarea id="c-msg" rows="4" placeholder="اكتب استفسارك هنا..."></textarea></div>
+    <div id="c-err" class="cerr"></div>
+    <button class="csend" onclick="submitInquiry()">إرسال</button>
+  </div>
+</div>
+
+<!-- DETAIL MODAL -->
+<div id="dmod">
+  <div id="dbox">
+    <button id="dclose" onclick="closeDetail()">✕</button>
+    <div id="dgal"></div>
+    <div id="dcontent"></div>
+  </div>
+</div>
+
+<script>
+const SUPA_URL='https://jcjlqvoitcmpdvoinncs.supabase.co';
+const SUPA_KEY='sb_publishable_pNmx9Im3_wKtT0XaQVKcwQ_D_4otwTo';
+
+function e(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function getTheme(){try{return localStorage.getItem('sf_theme')||'dark';}catch(err){return 'dark';}}
+function applyTheme(t){
+  document.body.classList.toggle('light',t==='light');
+  try{localStorage.setItem('sf_theme',t);}catch(err){}
+  const btn=document.getElementById('theme-btn');
+  if(btn)btn.textContent=t==='light'?'🌙':'☀️';
+}
+function toggleTheme(){applyTheme(getTheme()==='light'?'dark':'light');}
+document.addEventListener('DOMContentLoaded',()=>applyTheme(getTheme()));
+
+async function sbGet(table,query){
+  const r=await fetch(SUPA_URL+'/rest/v1/'+table+'?'+query,{
+    headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY}
+  });
+  if(!r.ok)return null;
+  return await r.json();
+}
+
+let OFFICE=null,LISTINGS=[];
+
+let CAT_FILTER='all';
+
+async function init(){
+  const params=new URLSearchParams(location.search);
+  const slug=params.get('office');
+  if(!slug){showState('notfound');return;}
+
+  const offices=await sbGet('offices','slug=eq.'+encodeURIComponent(slug)+'&select=*');
+  if(!offices||!offices.length){showState('notfound');return;}
+  OFFICE=offices[0];
+
+  document.getElementById('ohdr').style.display='flex';
+  document.getElementById('o-name').textContent=OFFICE.name||'—';
+  document.getElementById('o-city').textContent=OFFICE.city||'';
+  if(OFFICE.logo_url)document.getElementById('o-logo').src=OFFICE.logo_url;
+  if(OFFICE.phone){
+    document.getElementById('o-call').href='tel:'+OFFICE.phone;
+  }else{
+    document.getElementById('o-call').style.display='none';
+  }
+
+  const listings=await sbGet('listings','office_id=eq.'+OFFICE.id+'&status=eq.published&select=*&order=created_at.desc');
+  LISTINGS=listings||[];
+  if(!LISTINGS.length){showState('empty');return;}
+  showState('grid');
+  renderCatTabs();
+  renderGrid();
+
+  const listingId=params.get('listing');
+  if(listingId){
+    const idx=LISTINGS.findIndex(l=>l.id===listingId);
+    if(idx>=0)openDetail(idx);
+  }
+}
+
+function renderCatTabs(){
+  const cats=[...new Set(LISTINGS.map(l=>l.property_type).filter(Boolean))];
+  if(cats.length<2)return;
+  const tabs=document.getElementById('cat-tabs');
+  tabs.style.display='flex';
+  tabs.innerHTML='<button class="cat-tab on" onclick="filterByCat(\'all\',this)">الكل</button>'+
+    cats.map(c=>'<button class="cat-tab" onclick="filterByCat(\''+e(c)+'\',this)">'+e(c)+'</button>').join('');
+}
+function filterByCat(cat,btn){
+  CAT_FILTER=cat;
+  document.querySelectorAll('.cat-tab').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  renderGrid();
+}
+
+function showState(s){
+  document.getElementById('state-loading').style.display=s==='loading'?'flex':'none';
+  document.getElementById('state-notfound').style.display=s==='notfound'?'flex':'none';
+  document.getElementById('state-empty').style.display=s==='empty'?'flex':'none';
+  document.getElementById('grid').style.display=s==='grid'?'grid':'none';
+}
+
+function renderGrid(){
+  const grid=document.getElementById('grid');
+  const filtered=CAT_FILTER==='all'?LISTINGS:LISTINGS.filter(l=>l.property_type===CAT_FILTER);
+  if(!filtered.length){grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--muted)">لا توجد عروض بهذا التصنيف</div>';return;}
+  grid.innerHTML=filtered.map((l)=>{
+    const i=LISTINGS.indexOf(l);
+    const img=(l.images&&l.images[0])?'<img class="limg" src="'+l.images[0]+'">':'<div class="limg-ph">🏠</div>';
+    const dealCls=l.deal_type==='إيجار'?'rent':'sale';
+    return '<div class="lcard" onclick="openDetail('+i+')">'+img+
+      '<div class="lbody">'+
+      '<span class="ldeal '+dealCls+'">'+e(l.deal_type||'')+'</span>'+
+      '<div class="ltop"><div class="ltitle">'+e(l.title)+'</div>'+(l.price?'<div class="lprice">'+e(l.price)+' ر.س</div>':'')+'</div>'+
+      '<div class="lmeta">'+(l.property_type?'<span>🏷 '+e(l.property_type)+'</span>':'')+(l.area?'<span>📐 '+e(l.area)+' م²</span>':'')+(l.location?'<span>📍 '+e(l.location)+'</span>':'')+'</div>'+
+      '</div></div>';
+  }).join('');
+}
+
+function openDetail(i){
+  const l=LISTINGS[i];
+  const gal=document.getElementById('dgal');
+  gal.innerHTML=(l.images&&l.images.length)?l.images.map(src=>'<img src="'+src+'">').join(''):'<div class="limg-ph" style="height:220px">🏠</div>';
+
+  let fieldsHtml='';
+  const extra=l.extra_fields||{};
+  const coreFields=[];
+  if(l.property_type)coreFields.push(['النوع',l.property_type]);
+  if(l.area)coreFields.push(['المساحة',l.area+' م²']);
+  if(l.location)coreFields.push(['الموقع',l.location]);
+  Object.entries(extra).forEach(([k,v])=>{if(v)coreFields.push([k,v]);});
+  if(coreFields.length){
+    fieldsHtml='<div class="dfields">'+coreFields.map(([k,v])=>
+      '<div class="dfield"><div class="fk">'+e(k)+'</div><div class="fv">'+e(v)+'</div></div>'
+    ).join('')+'</div>';
+  }
+
+  const phone=OFFICE.phone||'';
+  document.getElementById('dcontent').innerHTML=
+    '<h2>'+e(l.title)+'</h2>'+
+    '<span class="ldeal '+(l.deal_type==='إيجار'?'rent':'sale')+'">'+e(l.deal_type||'')+'</span>'+
+    (l.price?'<div class="lprice" style="margin-top:8px;font-size:18px">'+e(l.price)+' ر.س</div>':'')+
+    fieldsHtml+
+    (l.description?'<div id="ddesc">'+e(l.description)+'</div>':'')+
+    '<div class="dact">'+
+    (phone?'<a class="c" href="tel:'+phone+'">📞 اتصال</a>':'')+
+    '</div>'+
+    (phone?'<button class="csend" style="margin-top:10px;background:linear-gradient(135deg,#25d366,#1ea952);color:#fff" onclick="inquireViaWhatsApp(\''+l.id+'\')">💬 استفسار عن هذا العرض عبر واتساب</button>':'');
+
+  document.getElementById('dmod').classList.add('on');
+}
+function inquireViaWhatsApp(listingId){
+  const l=LISTINGS.find(x=>x.id===listingId);
+  if(!l||!OFFICE.phone)return;
+  const link=location.origin+location.pathname+'?office='+encodeURIComponent(OFFICE.slug)+'&listing='+listingId;
+  const msg='مرحباً، أستفسر عن هذا العرض:\n'+l.title+'\n'+link;
+  window.open('https://wa.me/966'+OFFICE.phone.replace(/^0/,'')+'?text='+encodeURIComponent(msg),'_blank');
+}
+function closeDetail(){document.getElementById('dmod').classList.remove('on');}
+document.getElementById('dmod').addEventListener('click',e=>{if(e.target.id==='dmod')closeDetail();});
+
+// ── CONTACT / INQUIRY ──
+let CONTACT_LISTING_ID=null;
+function openContact(listingId,listingTitle){
+  CONTACT_LISTING_ID=listingId||null;
+  const hint=document.getElementById('c-listing-hint');
+  if(listingTitle){
+    hint.textContent='بخصوص: '+listingTitle;
+    hint.style.display='block';
+  }else{
+    hint.style.display='none';
+  }
+  document.getElementById('c-err').style.display='none';
+  document.getElementById('cmod').classList.add('on');
+}
+function closeContact(){document.getElementById('cmod').classList.remove('on');}
+document.getElementById('cmod').addEventListener('click',e=>{if(e.target.id==='cmod')closeContact();});
+
+async function submitInquiry(){
+  const name=document.getElementById('c-name').value.trim();
+  const phone=document.getElementById('c-phone').value.trim();
+  const email=document.getElementById('c-email').value.trim();
+  const msg=document.getElementById('c-msg').value.trim();
+  const err=document.getElementById('c-err');
+  err.style.display='none';
+  if(!name||!phone||!msg){err.textContent='الاسم والجوال والرسالة مطلوبة';err.style.display='block';return;}
+
+  const btn=document.querySelector('.csend[onclick="submitInquiry()"]')||document.querySelector('#cbox .csend');
+  const payload={
+    office_id:OFFICE.id,
+    listing_id:CONTACT_LISTING_ID,
+    name,phone,email,message:msg,
+    status:'جديد'
+  };
+  try{
+    const r=await fetch(SUPA_URL+'/rest/v1/inquiries',{
+      method:'POST',
+      headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Content-Type':'application/json','Prefer':'return=minimal'},
+      body:JSON.stringify(payload)
+    });
+    if(!r.ok){throw new Error('failed');}
+    document.getElementById('cbox').innerHTML='<div style="text-align:center;padding:20px 0"><div style="font-size:40px">✅</div><p style="margin-top:10px;color:var(--gold);font-weight:700">تم إرسال رسالتك بنجاح</p><p style="margin-top:6px;color:var(--muted);font-size:12.5px">سنتواصل معك قريباً</p></div>';
+    setTimeout(closeContact,2200);
+  }catch(err2){
+    err.textContent='تعذّر الإرسال، حاول مجدداً أو تواصل هاتفياً';
+    err.style.display='block';
+  }
+}
+
+init();
+</script>
+</body>
+</html>
